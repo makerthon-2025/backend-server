@@ -1,8 +1,9 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
+from src.controller import message_controller
 
 router = APIRouter()
 
-@router.get("/hello")
-def get_user():
-    return {"user_id": user, "name": "John Doe"}
+@router.get("/api/send_message")
+async def send_message(req: Request):
+    return await message_controller.send_message(req)
 
