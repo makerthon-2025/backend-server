@@ -28,7 +28,7 @@ def search_data(text):
     def hit_to_dict(hit):
         return {
             'id': hit.id,
-            'percent': hit.distance,
+            'percent': round(hit['distance']*100),
             'data': {
                 'name': hit.entity.get('name'),
                 'link': hit.entity.get('link'),

@@ -11,7 +11,7 @@ case = {
 }
 
 async def send_message(req: Request):
-    email = req.state.email
+    # email = req.state.email
     body = await req.json()
 
     if body['type'] == 'action':
@@ -36,13 +36,13 @@ import os
 from datetime import datetime
 
 def __gemini_call(prompt, rag_data):
-    scripts = f"[user prompt]: {prompt} \n [rag respond]: {rag_data} \n [system]: bạn là chat bot đọc báo cho hệ thống, bạn tên là mavBot, sau khi user hỏi qua [user prompt], hệ thống sẽ truy vấn RAG và hiển thị dữ liệu qua [rag respond], hãy dùng dữ liệu từ [rag respond] và dự vào các thông sốm trả về kết quả cho user, câu trả lời văn bản tiếng việt! Không quá 50 ký tự. Cố gắng trả lời nhiệt tình như một nhân viên tư vấn. Không kí tự đặc biệt!!!!. Hôm nay là ngày {datetime.today().strftime('%Y-%m-%d')}"
+    scripts = f"[rag respond]= {rag_data} \n [system]: trả lời khách quan cấm thảo mai, cấm nói từ ạ, dạ,... bạn là chat bot gợi ý tin tức cho hệ thống, sau khi user hỏi qua [user prompt], dựa vào thông tin từ [rag respond],hãy dùng dữ liệu từ [rag respond] và dự vào các thông sốm trả về kết quả (lấy văn bản thôi lấy content, đừng lấy link, đừng lặp lại tiêu đề cố gắng nói chi tiết nội dung bài báo) cho user, câu trả lời văn bản tiếng việt! Không quá 250 ký tự. Cố gắng trả lời nhiệt tình như một nhân viên tư vấn. Không kí tự đặc biệt như \n **!!!!. Hôm nay là ngày {datetime.today().strftime('%Y-%m-%d')}"
 
     body = {
         "contents": [
             {
                 "parts": [
-                    {"text": prompt}
+                    {"text": scripts}
                 ]
             }
         ]

@@ -6,6 +6,8 @@ from src.helper import env_load_helper
 import os
 import importlib
 from src.middleware import api_middleware
+from src.helper import check_helper
+from fastapi.middleware.cors import CORSMiddleware
 
 class ApiMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
@@ -17,6 +19,16 @@ class ApiMiddleware(BaseHTTPMiddleware):
         return response
     
 app = FastAPI()
+
+origins = ["*", 'http://localhost:3000']
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 app.add_middleware(ApiMiddleware)
 
 @app.exception_handler(Exception)
@@ -36,6 +48,10 @@ for filename in dir:
     print(f"Đã nạp router từ {module_name}")
 
 if __name__ == "__main__":
-    env_load_helper.load_env()
-    uvicorn.run(app, host="127.0.0.1", port= int(os.getenv('SERVER_PORT')))
+    try:
+        check_helper.check_everything_before_start_socket()
+        env_load_helper.load_env()
+        uvicorn.run(app, host="127.0.0.1", port= int(os.getenv('SERVER_PORT')))
+    except Exception as e:
+        print(str(e))
 
