@@ -11,6 +11,10 @@ db = client[os.getenv('MONGO_DB')]
 
 collection = db['news']
 
+def update_collection(data):
+    result = collection.update_one({"name": data['name']}, {"$set": data})
+    return True
+
 def insert_collection(data):
     id = collection.insert_one(data).inserted_id
     return id
