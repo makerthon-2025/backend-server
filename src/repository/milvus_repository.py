@@ -20,7 +20,7 @@ def search_data(text):
         data=[embeding_helper.encode_text(text)], 
         anns_field="vector", 
         param=search_params,  
-        limit=4,  
+        limit=30,  
         output_fields=['name', 'link', 'content', 'type'],
         consistency_level="Strong" 
     )
@@ -40,10 +40,10 @@ def search_data(text):
     result_dict = [hit_to_dict(hit) for hit in result[0]]  # result[0] là danh sách các hit trong kết quả
 
     # Sau đó bạn có thể serialize thành JSON
-    json_data = json.dumps(result_dict, ensure_ascii=False, indent=4)
+    res = json.dumps(result_dict, ensure_ascii=False, indent=4)
     # print(json_data)
 
-    return json_data
+    return res
 
 if __name__ == "__main__":
     res = search_data("nghỉ lễ 30/4")

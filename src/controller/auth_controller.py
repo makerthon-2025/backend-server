@@ -11,8 +11,6 @@ def google_callback_controller(req: Request):
 
     return RedirectResponse(__verify_codde_and_get_google_fe_redirect_url(code))
 
-
-
 # ===============================
 # PRIVATE FUNCTION
 import os

@@ -1,7 +1,7 @@
 import random
 from fastapi import APIRouter, Request
 from src.repository import user_repository
-from src.repository import milvus_repository
+from src.repository import milvus_repository, news_repository
 import json
 import requests
 
@@ -26,53 +26,49 @@ mockNewsName = [
 ]
 
 mockData = [
-    "AI & Internet",
-    "An ninh mạng",
+    "Chính trị",
+    "Xã hội",
     "An sinh",
-    "Bóng đá",
+    "Xã hội",
     "Công nghệ",
-    "Công sở"
+    "Tổ chức bộ máy"
 ]
 
-def __sort_dict(dict):
-    return sorted(dict.items(), key=lambda x: x[1], reverse=True)
-
-async def send_message_action(email: str, req: Request, body: dict):
+async def send_message_action(email: str, req: Request, body):
     news_name = mockNewsName[random.randint(0, len(mockNewsName) - 1)] 
     related_topic = mockData[random.randint(0, len(mockData) - 1)]
 
     user = user_repository.get_collection_by_email(email)
+    news = news_repository.get_collection_by_name(news_name)
+
+    if news is None:
+        news_repository.insert_collection({
+            'name': news_name,
+            'count': 0
+        })
+    else:
+        news_repository.update_collection({
+            'name': news_name,
+            'count': news['count'] + 1
+        })
 
     if user is None: 
         user_repository.insert_collection({
             'email': email,
-            'news_name': {
-                news_name: 0
-            },
             'related_topic': {
                 related_topic: 0
             }
         })
 
     else:
-        if news_name not in user['news_name']:
-            user['news_name'][news_name] = 0
-        else:
-            user['news_name'][news_name] += 1
-
         if related_topic not in user['related_topic']:
             user['related_topic'][related_topic] = 0
         else:
             user['related_topic'][related_topic] += 1
 
-        sorted_tuple_newsname = __sort_dict(user['news_name'])
         sorted_tuple_relatedtopic = __sort_dict(user['related_topic'])
 
-        user['news_name'] = {}
         user['related_topic'] = {}
-
-        for item in sorted_tuple_newsname:
-            user['news_name'][item[0]] = item[1]
 
         for item in sorted_tuple_relatedtopic:
             user['related_topic'][item[0]] = item[1]
@@ -87,10 +83,13 @@ async def send_message(req: Request):
     # email = req.state.email
     body = await req.json()
 
-    response = milvus_repository.search_data(body['prompt'])
+    response = json.loads(milvus_repository.search_data(body['prompt']))
+
+    suggest_news = __handle_response(response, "khang.tran@gmail.com", mockData[random.randint(0, len(mockData) - 1)])
 
     data = {
-        'data': json.loads(response)
+        'data': response[:4],
+        'suggest_news': suggest_news[:2]
     }
 
     str_data = json.dumps(data, ensure_ascii=False)
@@ -104,6 +103,32 @@ async def send_message(req: Request):
 # ===================== PRIVATE ===================================
 import os
 from datetime import datetime
+
+def __handle_response(response, email, related_topic):
+    user = user_repository.get_collection_by_email(email)
+
+    user = user_repository.get_collection_by_email(email)
+    related_topic = user['related_topic']
+
+    max_size = 3
+
+    suggest_news = []
+
+    for item in response:
+        if max_size >= 0:
+            max_size -= 1
+        else:
+            break
+
+        if item['data']['type'] in related_topic:
+            suggest_news.append(item)
+        else:
+            print(f"not in related topic: {item['data']['type']}")
+
+    return suggest_news
+
+def __sort_dict(dict):
+    return sorted(dict.items(), key=lambda x: x[1], reverse=True)
 
 def __gemini_call(prompt, rag_data):
     scripts = f"[rag respond]= {rag_data} \n [system]: trả lời khách quan cấm thảo mai, cấm nói từ ạ, dạ,... bạn là chat bot gợi ý tin tức cho hệ thống, sau khi user hỏi qua [user prompt], dựa vào thông tin từ [rag respond],hãy dùng dữ liệu từ [rag respond] và dự vào các thông sốm trả về kết quả (lấy văn bản thôi lấy content, đừng lấy link, đừng lặp lại tiêu đề cố gắng nói chi tiết nội dung bài báo) cho user, câu trả lời văn bản tiếng việt! Không quá 250 ký tự. Cố gắng trả lời nhiệt tình như một nhân viên tư vấn. Không kí tự đặc biệt như \n **!!!!. Hôm nay là ngày {datetime.today().strftime('%Y-%m-%d')}"
