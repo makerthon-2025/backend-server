@@ -21,7 +21,7 @@ def search_data(text):
         anns_field="vector", 
         param=search_params,  
         limit=4,  
-        output_fields=['name', 'link', 'content'],
+        output_fields=['name', 'link', 'content', 'type'],
         consistency_level="Strong" 
     )
 
@@ -32,7 +32,8 @@ def search_data(text):
             'data': {
                 'name': hit.entity.get('name'),
                 'link': hit.entity.get('link'),
-                'content': hit.entity.get('content')
+                'content': hit.entity.get('content'),
+                'type': hit.entity.get('type')
             }
         }
 
