@@ -100,11 +100,7 @@ async def send_message(req: Request):
 
     response = json.loads(milvus_repository.search_data(body['prompt']))
 
-    const type_value = api_classification(body['prompt'])
-
-    suggest_news = __handle_response(response, "khang.tran@gmail.com", )
-
-    top_article = news_repository.get_top_n_by_count(type_value, 4)
+    suggest_news = __handle_response(response, "khang.tran@gmail.com", api_classification(body['prompt']))
 
     data = {
         'data': response[:4],
@@ -118,8 +114,6 @@ async def send_message(req: Request):
 
     res = __gemini_call(body['prompt'], str_data)
     data['prompt'] = res
-
-    data['article'] = 
 
     return data
 
