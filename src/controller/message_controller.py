@@ -93,8 +93,11 @@ async def send_message(req: Request):
 
     data = {
         'data': response[:4],
-        'suggest_news': suggest_news[:2]
+        'suggest_news': suggest_news[:3]
     }
+
+    print(body)
+    print(data)
 
     str_data = json.dumps(data, ensure_ascii=False)
 
