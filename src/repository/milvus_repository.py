@@ -20,7 +20,7 @@ def search_data(text):
         data=[embeding_helper.encode_text(text)], 
         anns_field="vector", 
         param=search_params,  
-        limit=30,  
+        limit=20,  
         output_fields=['name', 'link', 'content', 'type'],
         consistency_level="Strong" 
     )

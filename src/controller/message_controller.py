@@ -45,8 +45,8 @@ async def top_article_action(type: str):
     return result
 
 async def send_message_action(email: str, req: Request, body):
-    news_name = mockNewsName[random.randint(0, len(mockNewsName) - 1)] 
-    related_topic = mockData[random.randint(0, len(mockData) - 1)]
+    news_name = body['news_name']
+    related_topic = body['type']
 
     user = user_repository.get_collection_by_email(email)
     news = news_repository.get_collection_by_name(news_name)
@@ -54,25 +54,28 @@ async def send_message_action(email: str, req: Request, body):
     if news is None:
         news_repository.insert_collection({
             'name': news_name,
-            'count': 0
+            'type': related_topic,
+            'count': 1,
+            'created_at': datetime.now()
         })
     else:
         news_repository.update_collection({
             'name': news_name,
-            'count': news['count'] + 1
+            'type': related_topic,
+            'count': news['count'] + 1,
         })
 
     if user is None: 
         user_repository.insert_collection({
             'email': email,
             'related_topic': {
-                related_topic: 0
+                related_topic: 1
             }
         })
 
     else:
         if related_topic not in user['related_topic']:
-            user['related_topic'][related_topic] = 0
+            user['related_topic'][related_topic] = 1
         else:
             user['related_topic'][related_topic] += 1
 
@@ -118,21 +121,29 @@ from datetime import datetime
 def __handle_response(response, email, related_topic):
     user = user_repository.get_collection_by_email(email)
 
-    user = user_repository.get_collection_by_email(email)
+    if user is None: 
+        user = {
+            'email': email,
+            'related_topic': {
+                related_topic: 1
+            }
+        }
+
+        user_repository.insert_collection(user)
+    
     related_topic = user['related_topic']
 
     max_size = 3
 
     suggest_news = []
 
-    for item in response:
-        if max_size >= 0:
-            max_size -= 1
-        else:
+    for item in response[4:]:
+        if max_size == 0:
             break
 
         if item['data']['type'] in related_topic:
             suggest_news.append(item)
+            max_size -= 1
         else:
             print(f"not in related topic: {item['data']['type']}")
 
