@@ -2,6 +2,7 @@ import random
 from fastapi import APIRouter, Request
 from src.repository import user_repository
 from src.repository import milvus_repository, news_repository
+from src.helper.api_classification_helper import api_classification
 import json
 import requests
 
@@ -88,7 +89,7 @@ async def send_message(req: Request):
 
     response = json.loads(milvus_repository.search_data(body['prompt']))
 
-    suggest_news = __handle_response(response, "khang.tran@gmail.com", mockData[random.randint(0, len(mockData) - 1)])
+    suggest_news = __handle_response(response, "khang.tran@gmail.com", api_classification(body['prompt']))
 
     data = {
         'data': response[:4],
