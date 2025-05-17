@@ -35,8 +35,8 @@ mockData = [
 ]
 
 async def send_message_action(email: str, req: Request, body):
-    news_name = mockNewsName[random.randint(0, len(mockNewsName) - 1)] 
-    related_topic = mockData[random.randint(0, len(mockData) - 1)]
+    news_name = body['news_name']
+    related_topic = body['type']
 
     user = user_repository.get_collection_by_email(email)
     news = news_repository.get_collection_by_name(news_name)
@@ -44,11 +44,13 @@ async def send_message_action(email: str, req: Request, body):
     if news is None:
         news_repository.insert_collection({
             'name': news_name,
+            'type': related_topic,
             'count': 0
         })
     else:
         news_repository.update_collection({
             'name': news_name,
+            'type': related_topic,
             'count': news['count'] + 1
         })
 
@@ -107,14 +109,21 @@ from datetime import datetime
 def __handle_response(response, email, related_topic):
     user = user_repository.get_collection_by_email(email)
 
-    user = user_repository.get_collection_by_email(email)
-    related_topic = user['related_topic']
+    if user is None: 
+        user = {
+            'email': email,
+            'related_topic': {
+                related_topic: 0
+            }
+        }
+
+        user_repository.insert_collection(user)
 
     max_size = 3
 
     suggest_news = []
 
-    for item in response:
+    for item in response[:4]:
         if max_size >= 0:
             max_size -= 1
         else:
