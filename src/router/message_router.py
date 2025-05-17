@@ -7,3 +7,9 @@ router = APIRouter()
 async def send_message(req: Request):
     return await message_controller.send_message(req)
 
+
+@router.post("/api/log_type/{email}")
+async def send_message_action(email: str, req: Request):
+    body = await req.json()
+
+    return await message_controller.send_message_action(email, req, body)

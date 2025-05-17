@@ -10,14 +10,17 @@ case = {
     'news_query': 321
 }
 
+async def send_message_action(email: str, req: Request, body: dict):
+    type = body['type']
+    news_name = body['news_name']
+
+    
+
 async def send_message(req: Request):
     # email = req.state.email
     body = await req.json()
 
-    if body['type'] == 'action':
-        pass
-    if body['type'] == 'news_query':
-        response = milvus_repository.search_data(body['prompt'])
+    response = milvus_repository.search_data(body['prompt'])
 
     data = {
         'data': json.loads(response)
