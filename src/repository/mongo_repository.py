@@ -4,7 +4,9 @@ from src.helper import env_load_helper
 
 env_load_helper.load_env()
 
-client = MongoClient(f'mongodb://{os.getenv('MONGO_USER')}:{os.getenv('MONGO_PASSWD')}@{os.getenv('MONGO_HOST')}:{os.getenv('MONGO_PORT')}/')
+# client = MongoClient(f'mongodb://{os.getenv('MONGO_USER')}:{os.getenv('MONGO_PASSWD')}@{os.getenv('MONGO_HOST')}:{os.getenv('MONGO_PORT')}/')
+
+client = MongoClient(f"mongodb+srv://{os.getenv('MONGO_USER')}:{os.getenv('MONGO_PASSWD')}@{os.getenv('MONGO_HOST')}/{os.getenv('MONGO_DB')}?retryWrites=true&w=majority")
 
 db = client[os.getenv('MONGO_DB')]
 
