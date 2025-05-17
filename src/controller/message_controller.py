@@ -1,4 +1,6 @@
+import random
 from fastapi import APIRouter, Request
+from src.repository import user_repository
 from src.repository import milvus_repository
 import json
 import requests
@@ -10,11 +12,76 @@ case = {
     'news_query': 321
 }
 
-async def send_message_action(email: str, req: Request, body: dict):
-    type = body['type']
-    news_name = body['news_name']
+mockNewsName = [
+    "Thủ tướng Phạm Minh Chính thăm chính thức Singapore",
+    "Giá vàng tăng mạnh, vượt mốc 80 triệu đồng/lượng",
+    "Việt Nam đăng cai SEA Games 32",
+    "Thời tiết miền Bắc chuyển lạnh đột ngột",
+    "Giá xăng dầu giảm từ 15h chiều nay",
+    "Hà Nội mở rộng không gian đi bộ phố cổ",
+    "Xuất khẩu nông sản đạt kỷ lục trong quý 1",
+    "Việt Nam phát triển công nghệ 5G bản địa",
+    "Dự báo kinh tế Việt Nam tăng trưởng 6.5%",
+    "Khai trương tuyến metro Bến Thành - Suối Tiên"
+]
 
-    
+mockData = [
+    "AI & Internet",
+    "An ninh mạng",
+    "An sinh",
+    "Bóng đá",
+    "Công nghệ",
+    "Công sở"
+]
+
+def __sort_dict(dict):
+    return sorted(dict.items(), key=lambda x: x[1], reverse=True)
+
+async def send_message_action(email: str, req: Request, body: dict):
+    news_name = mockNewsName[random.randint(0, len(mockNewsName) - 1)] 
+    related_topic = mockData[random.randint(0, len(mockData) - 1)]
+
+    user = user_repository.get_collection_by_email(email)
+
+    if user is None: 
+        user_repository.insert_collection({
+            'email': email,
+            'news_name': {
+                news_name: 0
+            },
+            'related_topic': {
+                related_topic: 0
+            }
+        })
+
+    else:
+        if news_name not in user['news_name']:
+            user['news_name'][news_name] = 0
+        else:
+            user['news_name'][news_name] += 1
+
+        if related_topic not in user['related_topic']:
+            user['related_topic'][related_topic] = 0
+        else:
+            user['related_topic'][related_topic] += 1
+
+        sorted_tuple_newsname = __sort_dict(user['news_name'])
+        sorted_tuple_relatedtopic = __sort_dict(user['related_topic'])
+
+        user['news_name'] = {}
+        user['related_topic'] = {}
+
+        for item in sorted_tuple_newsname:
+            user['news_name'][item[0]] = item[1]
+
+        for item in sorted_tuple_relatedtopic:
+            user['related_topic'][item[0]] = item[1]
+        
+        user_repository.update_collection(user)
+
+    return {
+        'msg': "success",
+    }
 
 async def send_message(req: Request):
     # email = req.state.email
