@@ -34,6 +34,16 @@ mockData = [
     "Tổ chức bộ máy"
 ]
 
+async def top_article_action(type: str):
+    # Giả sử get_top_n_by_count(limit) là async và trả về danh sách bài báo
+    data = news_repository.get_top_n_by_count(type, 4)
+    # suggest_news = await news_repository.get_top_n_by_count(limit=2)
+    result = {
+        'data': data
+    }
+
+    return result
+
 async def send_message_action(email: str, req: Request, body):
     news_name = mockNewsName[random.randint(0, len(mockNewsName) - 1)] 
     related_topic = mockData[random.randint(0, len(mockData) - 1)]
@@ -78,6 +88,7 @@ async def send_message_action(email: str, req: Request, body):
     return {
         'msg': "success",
     }
+
 
 async def send_message(req: Request):
     # email = req.state.email
